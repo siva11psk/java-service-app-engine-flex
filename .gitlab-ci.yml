@@ -1,0 +1,25 @@
+stages:
+  - build
+  - deploy
+
+build and package:
+  stage: build
+  image: maven:3.6.3-jdk-8
+  script:
+    - mvn clean package
+    - mkdir artifacts
+    - cp ./target/*.jar ./artifacts
+    - cp ./app.yaml ./artifacts
+  artifacts:
+    paths:
+      - ./artifacts
+
+
+deploy to app engine:
+  stage: deploy
+  image: google/cloud-sdk:latest
+  script:
+    - cd artifacts
+    - gcloud config set project $GCP_PROJECT_ID
+    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+    - gcloud app deploy --version=v1 --quiet
